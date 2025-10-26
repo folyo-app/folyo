@@ -33,12 +33,18 @@ function transformDexScreenerPair($dexPair) {
     return [
         'name' => ($dexPair['baseToken']['symbol'] ?? 'N/A') . '/' . ($dexPair['quoteToken']['symbol'] ?? 'N/A'),
         'base_asset_symbol' => $dexPair['baseToken']['symbol'] ?? 'N/A',
+        'base_asset_name' => $dexPair['baseToken']['name'] ?? 'N/A',
         'base_asset_address' => $dexPair['baseToken']['address'] ?? '',
+        'base_asset_contract_address' => $dexPair['baseToken']['address'] ?? '',
         'quote_asset_symbol' => $dexPair['quoteToken']['symbol'] ?? 'N/A',
+        'quote_asset_name' => $dexPair['quoteToken']['name'] ?? 'N/A',
+        'quote_asset_contract_address' => $dexPair['quoteToken']['address'] ?? '',
         'contract_address' => $dexPair['pairAddress'] ?? '',
         'network_slug' => $dexPair['chainId'] ?? 'ethereum',
         'dex_id' => $dexPair['dexId'] ?? '',
+        'dex_slug' => $dexPair['dexId'] ?? '',
         'url' => $dexPair['url'] ?? '',
+        'created_at' => $dexPair['pairCreatedAt'] ?? null,
         'quote' => [[
             'price' => (float) ($dexPair['priceUsd'] ?? 0),
             'volume_24h' => (float) ($dexPair['volume']['h24'] ?? 0),
@@ -46,6 +52,7 @@ function transformDexScreenerPair($dexPair) {
             'percent_change_price_24h' => (float) ($dexPair['priceChange']['h24'] ?? 0),
             'percent_change_price_1h' => (float) ($dexPair['priceChange']['h1'] ?? 0),
             'percent_change_price_6h' => (float) ($dexPair['priceChange']['h6'] ?? 0),
+            'fully_diluted_value' => (float) ($dexPair['fdv'] ?? 0),
         ]],
         'num_transactions_24h' => ((int) ($dexPair['txns']['h24']['buys'] ?? 0)) + ((int) ($dexPair['txns']['h24']['sells'] ?? 0)),
         'txns' => [
@@ -275,7 +282,13 @@ switch ($endpoint) {
         if (isset($dexData['pairs']) && count($dexData['pairs']) > 0) {
             $transformed = transformDexScreenerPair($dexData['pairs'][0]);
             http_response_code(200);
-            echo json_encode($transformed);
+            echo json_encode([
+                'data' => [$transformed],
+                'status' => [
+                    'error_code' => 0,
+                    'error_message' => null
+                ]
+            ]);
         } else {
             http_response_code(404);
             echo json_encode(['error' => 'Pair not found']);

@@ -16,7 +16,7 @@ const DexPairDetail = {
         // Get contract address and network slug from URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         this.contractAddress = urlParams.get('contract');
-        this.networkSlug = urlParams.get('network') || 'Ethereum';
+        this.networkSlug = (urlParams.get('network') || 'ethereum').toLowerCase();
 
         if (!this.contractAddress) {
             this.showError('No pair contract address specified');
@@ -89,22 +89,19 @@ const DexPairDetail = {
         // Update breadcrumb
         document.getElementById('breadcrumb-name').textContent = this.pairData.name;
 
-        // Pair Header - Token Icons
-        const baseTokenIcon = this.pairData.base_asset_ucid
-            ? `https://s2.coinmarketcap.com/static/img/coins/64x64/${this.pairData.base_asset_ucid}.png`
-            : '';
-        const quoteTokenIcon = this.pairData.quote_asset_ucid
-            ? `https://s2.coinmarketcap.com/static/img/coins/64x64/${this.pairData.quote_asset_ucid}.png`
-            : '';
+        // Pair Header - Token Icons (from DexScreener imageUrl)
+        const baseTokenIcon = this.pairData.info?.imageUrl || '';
 
         if (baseTokenIcon) {
             document.getElementById('base-token-logo').src = baseTokenIcon;
             document.getElementById('base-token-logo').alt = this.pairData.base_asset_symbol;
+            document.getElementById('base-token-logo').style.display = 'block';
+        } else {
+            document.getElementById('base-token-logo').style.display = 'none';
         }
-        if (quoteTokenIcon) {
-            document.getElementById('quote-token-logo').src = quoteTokenIcon;
-            document.getElementById('quote-token-logo').alt = this.pairData.quote_asset_symbol;
-        }
+
+        // Quote token icon not available from DexScreener, hide it
+        document.getElementById('quote-token-logo').style.display = 'none';
 
         // Pair Name
         document.getElementById('pair-name').textContent = this.pairData.name;
@@ -216,17 +213,18 @@ const DexPairDetail = {
      * @returns {string}
      */
     getBlockExplorerUrl(network) {
+        const networkLower = (network || '').toLowerCase();
         const explorers = {
-            'Ethereum': 'https://etherscan.io',
-            'BSC': 'https://bscscan.com',
-            'Polygon': 'https://polygonscan.com',
-            'Avalanche': 'https://snowtrace.io',
-            'Arbitrum': 'https://arbiscan.io',
-            'Optimism': 'https://optimistic.etherscan.io',
-            'Base': 'https://basescan.org',
-            'Solana': 'https://solscan.io'
+            'ethereum': 'https://etherscan.io',
+            'bsc': 'https://bscscan.com',
+            'polygon': 'https://polygonscan.com',
+            'avalanche': 'https://snowtrace.io',
+            'arbitrum': 'https://arbiscan.io',
+            'optimism': 'https://optimistic.etherscan.io',
+            'base': 'https://basescan.org',
+            'solana': 'https://solscan.io'
         };
-        return explorers[network] || 'https://etherscan.io';
+        return explorers[networkLower] || 'https://etherscan.io';
     },
 
     /**
