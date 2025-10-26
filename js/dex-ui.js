@@ -9,6 +9,7 @@ const DEXUI = {
     allPairs: [],
     filteredPairs: [],
     searchTerm: '',
+    isSearching: false,
 
     /**
      * Render network filter chips
@@ -82,32 +83,61 @@ const DEXUI = {
         const searchInput = document.getElementById('dex-search-input');
         if (!searchInput) return;
 
-        searchInput.addEventListener('input', Utils.debounce((e) => {
-            this.searchTerm = e.target.value.toLowerCase();
-            this.filterAndRenderPairs();
-        }, 300));
+        searchInput.addEventListener('input', Utils.debounce(async (e) => {
+            this.searchTerm = e.target.value.trim();
+            await this.performSearch();
+        }, 500));
     },
 
     /**
-     * Filter pairs based on search term
+     * Perform search via API or show popular pairs
      */
-    filterAndRenderPairs() {
-        if (!this.searchTerm) {
-            this.filteredPairs = this.allPairs;
-        } else {
-            this.filteredPairs = this.allPairs.filter(pair => {
-                const pairName = (pair.name || '').toLowerCase();
-                const baseSymbol = (pair.base_asset_symbol || '').toLowerCase();
-                const dexName = (pair.dex_id || '').toLowerCase();
+    async performSearch() {
+        try {
+            // If no search term, reload popular pairs for current network
+            if (!this.searchTerm) {
+                if (typeof DEXApp !== 'undefined' && DEXApp.loadPairs) {
+                    await DEXApp.loadPairs();
+                }
+                return;
+            }
 
-                return pairName.includes(this.searchTerm) ||
-                       baseSymbol.includes(this.searchTerm) ||
-                       dexName.includes(this.searchTerm);
-            });
+            // Show loading state
+            this.isSearching = true;
+            this.showSearchLoading();
+
+            // Call DexScreener search API
+            const data = await DEXAPI.getDexSearch(this.searchTerm);
+
+            if (data.data && data.data.length > 0) {
+                this.allPairs = data.data;
+                this.filteredPairs = data.data;
+                this.renderPairsTable(data.data);
+            } else {
+                this.allPairs = [];
+                this.filteredPairs = [];
+                this.renderPairsTable([]);
+            }
+
+            this.isSearching = false;
+            this.hideLoading();
+
+        } catch (error) {
+            console.error('Error performing search:', error);
+            this.isSearching = false;
+            this.hideLoading();
+            this.showError('Failed to search pairs. Please try again.');
         }
+    },
 
-        this.renderPairsTable(this.filteredPairs);
-        this.updatePairCount();
+    /**
+     * Show loading state for search
+     */
+    showSearchLoading() {
+        const tbody = document.getElementById('dex-table-body');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-secondary);"><div class="loading-spinner" style="margin: 0 auto 10px;"></div>Searching...</td></tr>';
+        }
     },
 
     /**
@@ -188,7 +218,10 @@ const DEXUI = {
         if (!tbody) return;
 
         if (!pairs || pairs.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-secondary);">No pairs available</td></tr>';
+            const message = this.searchTerm
+                ? `No results found for "${this.searchTerm}"`
+                : 'No pairs available';
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-secondary);">${message}</td></tr>`;
             this.updatePairCount();
             return;
         }

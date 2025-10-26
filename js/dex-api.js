@@ -96,5 +96,42 @@ const DEXAPI = {
             console.error('Error fetching networks top tokens:', error);
             return [];
         }
+    },
+
+    /**
+     * Search for DEX pairs via DexScreener search API
+     * @param {string} query - Search query (token name, symbol, or address)
+     * @returns {Promise<object>}
+     */
+    async getDexSearch(query) {
+        try {
+            if (!query || query.trim().length === 0) {
+                return { data: [], status: { error_code: 0, error_message: null } };
+            }
+
+            const params = new URLSearchParams({
+                endpoint: 'dex-screener-search',
+                q: query.trim()
+            });
+
+            const url = `${CONFIG.API_BASE_URL}?${params.toString()}`;
+
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.status && data.status.error_code !== '0' && data.status.error_code !== 0) {
+                throw new Error(data.status.error_message || 'API Error');
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Error searching DEX pairs:', error);
+            throw error;
+        }
     }
 };

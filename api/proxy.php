@@ -106,7 +106,7 @@ $apiKey = loadEnv();
 
 // Check if endpoint requires API key (DexScreener endpoints don't need it)
 $endpoint = $_GET['endpoint'] ?? '';
-$requiresApiKey = !in_array($endpoint, ['fear-greed', 'dex-screener-tokens', 'dex-screener-pair']);
+$requiresApiKey = !in_array($endpoint, ['fear-greed', 'dex-screener-tokens', 'dex-screener-pair', 'dex-screener-search']);
 
 if ($requiresApiKey && !$apiKey) {
     http_response_code(500);
@@ -280,6 +280,37 @@ switch ($endpoint) {
             http_response_code(404);
             echo json_encode(['error' => 'Pair not found']);
         }
+        exit;
+
+    case 'dex-screener-search':
+        // DexScreener API - Search for pairs
+        $query = $_GET['q'] ?? '';
+
+        if (empty($query)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Missing query parameter']);
+            exit;
+        }
+
+        // Make direct request to DexScreener search endpoint
+        $dexScreenerUrl = "https://api.dexscreener.com/latest/dex/search?q=" . urlencode($query);
+        $dexResponse = file_get_contents($dexScreenerUrl);
+
+        if ($dexResponse === false) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to fetch from DexScreener']);
+            exit;
+        }
+
+        $dexData = json_decode($dexResponse, true);
+
+        // Transform DexScreener format to match our current UI expectations
+        // DexScreener search returns {schemaVersion, pairs}, we need just the pairs array
+        $pairs = $dexData['pairs'] ?? [];
+        $transformed = transformDexScreenerData($pairs);
+
+        http_response_code(200);
+        echo json_encode($transformed);
         exit;
 
     default:
