@@ -105,8 +105,23 @@
 
     /* Exception: Keep DEX table visible on mobile */
     .crypto-table.dex-table {
-        display: table;
+        display: table !important;
         font-size: 12px;
+    }
+
+    .dex-table thead,
+    .dex-table tbody,
+    .dex-table tr {
+        display: table-row-group;
+    }
+
+    .dex-table tr {
+        display: table-row;
+    }
+
+    .dex-table th,
+    .dex-table td {
+        display: table-cell;
     }
 
     /* Hide less important DEX columns on mobile */
@@ -118,7 +133,7 @@
     .dex-table td:nth-child(7),
     .dex-table th:nth-child(9), /* DEX */
     .dex-table td:nth-child(9) {
-        display: none;
+        display: none !important;
     }
 
     .dex-table th,
