@@ -41,6 +41,11 @@ logs/
 tmp/
 uploads/
 
+# Temporary analysis files
+/tmp/test_*.sh
+/tmp/dexscreener_*.md
+/tmp/DEXSCREENER_API_ANALYSIS.md
+
 # Development
 node_modules/
 vendor/

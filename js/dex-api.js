@@ -1,29 +1,35 @@
 /**
  * Folyo - DEX API Functions
+ * Using DexScreener API for multi-chain DEX data
  */
 
 const DEXAPI = {
     /**
-     * Fetch DEX pairs from API
-     * @param {string} networkSlug - Network slug (e.g., 'Ethereum')
-     * @param {number} limit - Number of pairs to fetch (max 25 for free tier)
-     * @param {string} scrollId - Scroll ID for pagination (optional)
-     * @param {string} sort - Sort field (default: volume_24h)
+     * Fetch DEX pairs from DexScreener API
+     * @param {string} networkSlug - Network slug (e.g., 'ethereum', 'bsc', 'solana')
+     * @param {number} limit - Number of pairs to fetch (ignored, uses popular tokens list)
+     * @param {string} scrollId - Scroll ID for pagination (deprecated, not used)
+     * @param {string} sort - Sort field (deprecated, sorted by volume on server)
      * @returns {Promise<object>}
      */
-    async getDexPairs(networkSlug = 'Ethereum', limit = 25, scrollId = '', sort = 'volume_24h') {
+    async getDexPairs(networkSlug = 'ethereum', limit = 25, scrollId = '', sort = 'volume_24h') {
         try {
-            const params = new URLSearchParams({
-                endpoint: 'dex-pairs',
-                network_slug: networkSlug,
-                limit: limit.toString(),
-                sort: sort,
-                aux: 'num_transactions_24h,security_scan'
-            });
+            // Convert network slug to lowercase chain ID
+            const chainId = networkSlug.toLowerCase();
 
-            if (scrollId) {
-                params.append('scroll_id', scrollId);
+            // Get popular token addresses for this chain
+            if (!DEXPopularTokens.hasTokens(chainId)) {
+                console.warn(`No popular tokens configured for chain: ${chainId}`);
+                return { data: [], status: { error_code: 0, error_message: null } };
             }
+
+            const tokenAddresses = DEXPopularTokens.getTokensString(chainId, 25);
+
+            const params = new URLSearchParams({
+                endpoint: 'dex-screener-tokens',
+                chain_id: chainId,
+                token_addresses: tokenAddresses
+            });
 
             const url = `${CONFIG.API_BASE_URL}?${params.toString()}`;
 
@@ -53,7 +59,17 @@ const DEXAPI = {
      * @returns {Promise<object>}
      */
     async getTopTokensByNetwork(networkSlug, limit = 3) {
-        return this.getDexPairs(networkSlug, limit, '', 'volume_24h');
+        // Get all pairs and return top N by volume
+        const allPairs = await this.getDexPairs(networkSlug, 25);
+
+        if (allPairs.data && allPairs.data.length > 0) {
+            return {
+                data: allPairs.data.slice(0, limit),
+                status: allPairs.status
+            };
+        }
+
+        return allPairs;
     },
 
     /**
@@ -63,7 +79,7 @@ const DEXAPI = {
     async getAllNetworksTopTokens() {
         const availableNetworks = DEXNetworks.getAvailable();
         const promises = availableNetworks.map(network =>
-            this.getTopTokensByNetwork(network.slug, 3)
+            this.getTopTokensByNetwork(network.slug.toLowerCase(), 3)
                 .catch(error => {
                     console.warn(`Failed to fetch ${network.slug} data:`, error);
                     return { data: [], network: network.slug };

@@ -3,7 +3,7 @@
  */
 
 const DEXUI = {
-    currentNetwork: 'Ethereum',
+    currentNetwork: 'ethereum',
     currentScrollId: null,
     previousScrollIds: [],
     allPairs: [],
@@ -56,7 +56,7 @@ const DEXUI = {
         document.querySelector(`[data-network="${network}"]`).classList.add('active');
 
         // Update current network
-        this.currentNetwork = network === 'all' ? 'Ethereum' : network;
+        this.currentNetwork = network === 'all' ? 'ethereum' : network;
         this.currentScrollId = null;
         this.previousScrollIds = [];
 
@@ -133,7 +133,7 @@ const DEXUI = {
         if (!tbody) return;
 
         if (!pairs || pairs.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-secondary);">No pairs available</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-secondary);">No pairs available</td></tr>';
             return;
         }
 
@@ -154,23 +154,11 @@ const DEXUI = {
             const networkIcon = DEXNetworks.getIcon(pair.network_slug);
             const networkShortName = DEXNetworks.getShortName(pair.network_slug);
 
-            // Security scan
-            let securityBadge = '';
-            if (pair.security_scan && pair.security_scan.length > 0) {
-                const scan = pair.security_scan[0].aggregated || {};
-                if (scan.honeypot === false && scan.contract_verified === true) {
-                    securityBadge = '<span class="security-badge safe">✓ Safe</span>';
-                } else if (scan.honeypot === true) {
-                    securityBadge = '<span class="security-badge warning">⚠ Warning</span>';
-                } else {
-                    securityBadge = '<span class="security-badge unknown">? Unknown</span>';
-                }
-            }
+            // DEX name
+            const dexName = pair.dex_id ? this.formatDexName(pair.dex_id) : '';
 
-            // Token icon URL (using base asset which is the predominant token)
-            const tokenIcon = pair.base_asset_ucid
-                ? `https://s2.coinmarketcap.com/static/img/coins/64x64/${pair.base_asset_ucid}.png`
-                : null;
+            // Token icon URL (from DexScreener info.imageUrl or fallback)
+            const tokenIcon = pair.info?.imageUrl || null;
 
             // Use only the base asset symbol (predominant token) instead of full pair name
             const tokenSymbol = pair.base_asset_symbol || 'N/A';
@@ -195,7 +183,7 @@ const DEXUI = {
                     <td><span class="dex-volume">$${this.formatNumber(volume24h)}</span></td>
                     <td><span class="dex-txns">${this.formatNumber(txns24h, 0)}</span></td>
                     <td><span class="dex-change ${changeClass}">${changeSign}${Math.abs(change24h).toFixed(2)}%</span></td>
-                    <td>${securityBadge}</td>
+                    <td><span class="dex-name">${dexName}</span></td>
                 </tr>
             `;
         }).join('');
@@ -245,6 +233,48 @@ const DEXUI = {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    },
+
+    /**
+     * Format DEX name for display
+     * @param {string} dexId - DEX identifier (e.g., 'uniswap-v3', 'pancakeswap')
+     * @returns {string} Formatted DEX name
+     */
+    formatDexName(dexId) {
+        if (!dexId) return '';
+
+        // Map of known DEXes to proper names
+        const dexNames = {
+            'uniswap': 'Uniswap',
+            'uniswap-v2': 'Uniswap V2',
+            'uniswap-v3': 'Uniswap V3',
+            'pancakeswap': 'PancakeSwap',
+            'pancakeswap-v2': 'PancakeSwap V2',
+            'pancakeswap-v3': 'PancakeSwap V3',
+            'sushiswap': 'SushiSwap',
+            'curve': 'Curve',
+            'balancer': 'Balancer',
+            'raydium': 'Raydium',
+            'orca': 'Orca',
+            'jupiter': 'Jupiter',
+            'aerodrome': 'Aerodrome',
+            'velodrome': 'Velodrome',
+            'quickswap': 'QuickSwap',
+            'trader-joe': 'Trader Joe',
+            'spookyswap': 'SpookySwap',
+            'spiritswap': 'SpiritSwap'
+        };
+
+        // Return mapped name or capitalize first letter of each word
+        if (dexNames[dexId.toLowerCase()]) {
+            return dexNames[dexId.toLowerCase()];
+        }
+
+        // Fallback: capitalize and replace hyphens
+        return dexId
+            .split('-')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
     },
 
     /**

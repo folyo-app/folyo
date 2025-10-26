@@ -1,20 +1,23 @@
 /**
  * Folyo - DEX Pair API Functions
+ * Using DexScreener API for pair details
  */
 
 const DexPairAPI = {
     /**
-     * Fetch DEX pair quotes from API
+     * Fetch DEX pair quotes from DexScreener API
      * @param {string} contractAddress - Pair contract address
-     * @param {string} networkSlug - Network slug (e.g., 'Ethereum')
+     * @param {string} networkSlug - Network slug (e.g., 'ethereum', 'bsc', 'solana')
      * @returns {Promise<object>}
      */
-    async getPairQuotes(contractAddress, networkSlug = 'Ethereum') {
+    async getPairQuotes(contractAddress, networkSlug = 'ethereum') {
         try {
+            const chainId = networkSlug.toLowerCase();
+
             const params = new URLSearchParams({
-                endpoint: 'dex-pair-quotes',
-                contract_address: contractAddress,
-                network_slug: networkSlug
+                endpoint: 'dex-screener-pair',
+                chain_id: chainId,
+                pair_address: contractAddress
             });
 
             const url = `${CONFIG.API_BASE_URL}?${params.toString()}`;
@@ -27,8 +30,8 @@ const DexPairAPI = {
 
             const data = await response.json();
 
-            if (data.status && data.status.error_code !== '0' && data.status.error_code !== 0) {
-                throw new Error(data.status.error_message || 'API Error');
+            if (data.error) {
+                throw new Error(data.error);
             }
 
             return data;

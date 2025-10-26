@@ -105,7 +105,7 @@
                             <th>Volume (24h)</th>
                             <th>Txns (24h)</th>
                             <th>24h %</th>
-                            <th>Security</th>
+                            <th>DEX</th>
                         </tr>
                     </thead>
                     <tbody id="dex-table-body">
@@ -114,14 +114,10 @@
                 </table>
             </div>
 
-            <!-- Pagination -->
+            <!-- Network Info -->
             <div class="pagination" id="pagination">
-                <div class="pagination-info">
-                    Showing DEX pairs on <span id="current-network">Ethereum</span> network
-                </div>
-                <div class="pagination-controls">
-                    <button id="prev-page" class="btn-page" onclick="DEXApp.loadPrevPage()" disabled>← Previous</button>
-                    <button id="next-page" class="btn-page" onclick="DEXApp.loadNextPage()">Next →</button>
+                <div class="pagination-info" style="text-align: center; width: 100%;">
+                    Showing top DEX pairs by volume on <span id="current-network">Ethereum</span> network
                 </div>
             </div>
         </div>
@@ -186,16 +182,74 @@
     <!-- Mobile Nav Backdrop -->
     <div class="mobile-nav-backdrop" id="mobile-nav-backdrop"></div>
 
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Login to Folyo</h2>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <form id="login-form" class="auth-form">
+                <div id="login-error" class="error-message" style="display: none;"></div>
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" name="email" required placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" name="password" required placeholder="Enter your password">
+                </div>
+                <button type="submit" class="btn-submit">Login</button>
+                <p class="auth-switch">
+                    Don't have an account? <a href="#" id="show-signup">Sign up</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div id="signup-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Sign Up to Folyo</h2>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <form id="signup-form" class="auth-form">
+                <div id="signup-error" class="error-message" style="display: none;"></div>
+                <div class="form-group">
+                    <label for="signup-email">Email</label>
+                    <input type="email" id="signup-email" name="email" required placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" name="password" required minlength="6" placeholder="Create a password (min 6 characters)">
+                </div>
+                <div class="form-group">
+                    <label for="signup-confirm-password">Confirm Password</label>
+                    <input type="password" id="signup-confirm-password" name="password-confirm" required placeholder="Confirm your password">
+                </div>
+                <button type="submit" class="btn-submit">Sign Up</button>
+                <p class="auth-switch">
+                    Already have an account? <a href="#" id="show-login">Login</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="../js/config.js"></script>
     <script src="../js/debug.js"></script>
     <script src="../js/utils.js"></script>
     <script src="../js/theme.js"></script>
     <script src="../js/currency.js"></script>
+    <script src="../js/dex-popular-tokens.js"></script>
     <script src="../js/dex-networks.js"></script>
     <script src="../js/dex-api.js"></script>
     <script src="../js/dex-ui.js"></script>
     <script src="../js/dex-app.js"></script>
+    <script src="../js/api-client.js"></script>
+    <script src="../js/auth-manager.js"></script>
+    <script src="../js/auth.js"></script>
 
     <!-- Mobile Menu Script (reuse from main app) -->
     <script>

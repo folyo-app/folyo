@@ -24,16 +24,97 @@ function loadEnv() {
     return $_ENV['CMC_API_KEY'] ?? null;
 }
 
+/**
+ * Transform DexScreener pair data to match CMC format expected by UI
+ * @param array $dexPair DexScreener pair object
+ * @return array Transformed pair in CMC-compatible format
+ */
+function transformDexScreenerPair($dexPair) {
+    return [
+        'name' => ($dexPair['baseToken']['symbol'] ?? 'N/A') . '/' . ($dexPair['quoteToken']['symbol'] ?? 'N/A'),
+        'base_asset_symbol' => $dexPair['baseToken']['symbol'] ?? 'N/A',
+        'base_asset_address' => $dexPair['baseToken']['address'] ?? '',
+        'quote_asset_symbol' => $dexPair['quoteToken']['symbol'] ?? 'N/A',
+        'contract_address' => $dexPair['pairAddress'] ?? '',
+        'network_slug' => $dexPair['chainId'] ?? 'ethereum',
+        'dex_id' => $dexPair['dexId'] ?? '',
+        'url' => $dexPair['url'] ?? '',
+        'quote' => [[
+            'price' => (float) ($dexPair['priceUsd'] ?? 0),
+            'volume_24h' => (float) ($dexPair['volume']['h24'] ?? 0),
+            'liquidity' => (float) ($dexPair['liquidity']['usd'] ?? 0),
+            'percent_change_price_24h' => (float) ($dexPair['priceChange']['h24'] ?? 0),
+            'percent_change_price_1h' => (float) ($dexPair['priceChange']['h1'] ?? 0),
+            'percent_change_price_6h' => (float) ($dexPair['priceChange']['h6'] ?? 0),
+        ]],
+        'num_transactions_24h' => ((int) ($dexPair['txns']['h24']['buys'] ?? 0)) + ((int) ($dexPair['txns']['h24']['sells'] ?? 0)),
+        'txns' => [
+            'm5' => $dexPair['txns']['m5'] ?? ['buys' => 0, 'sells' => 0],
+            'h1' => $dexPair['txns']['h1'] ?? ['buys' => 0, 'sells' => 0],
+            'h6' => $dexPair['txns']['h6'] ?? ['buys' => 0, 'sells' => 0],
+            'h24' => $dexPair['txns']['h24'] ?? ['buys' => 0, 'sells' => 0],
+        ],
+        'volume' => [
+            'm5' => (float) ($dexPair['volume']['m5'] ?? 0),
+            'h1' => (float) ($dexPair['volume']['h1'] ?? 0),
+            'h6' => (float) ($dexPair['volume']['h6'] ?? 0),
+            'h24' => (float) ($dexPair['volume']['h24'] ?? 0),
+        ],
+        'fdv' => (float) ($dexPair['fdv'] ?? 0),
+        'market_cap' => (float) ($dexPair['marketCap'] ?? 0),
+        'pair_created_at' => $dexPair['pairCreatedAt'] ?? null,
+        'info' => [
+            'imageUrl' => $dexPair['info']['imageUrl'] ?? null,
+            'header' => $dexPair['info']['header'] ?? null,
+            'websites' => $dexPair['info']['websites'] ?? [],
+            'socials' => $dexPair['info']['socials'] ?? [],
+        ],
+        // Security scan not available in DexScreener
+        'security_scan' => []
+    ];
+}
+
+/**
+ * Transform array of DexScreener pairs to CMC format
+ * @param array $dexPairs Array of DexScreener pair objects
+ * @return array Response in CMC-compatible format
+ */
+function transformDexScreenerData($dexPairs) {
+    if (!is_array($dexPairs)) {
+        return ['data' => []];
+    }
+
+    $transformed = array_map('transformDexScreenerPair', $dexPairs);
+
+    // Sort by volume 24h descending
+    usort($transformed, function($a, $b) {
+        $volA = $a['quote'][0]['volume_24h'] ?? 0;
+        $volB = $b['quote'][0]['volume_24h'] ?? 0;
+        return $volB <=> $volA;
+    });
+
+    return [
+        'data' => $transformed,
+        'status' => [
+            'error_code' => 0,
+            'error_message' => null,
+        ]
+    ];
+}
+
 $apiKey = loadEnv();
 
-if (!$apiKey) {
+// Check if endpoint requires API key (DexScreener endpoints don't need it)
+$endpoint = $_GET['endpoint'] ?? '';
+$requiresApiKey = !in_array($endpoint, ['fear-greed', 'dex-screener-tokens', 'dex-screener-pair']);
+
+if ($requiresApiKey && !$apiKey) {
     http_response_code(500);
     echo json_encode(['error' => 'API key not configured']);
     exit;
 }
 
-// Get parameters
-$endpoint = $_GET['endpoint'] ?? '';
+// Get parameters (endpoint already retrieved above for API key check)
 $start = $_GET['start'] ?? '1';
 $limit = $_GET['limit'] ?? '100';
 $convert = $_GET['convert'] ?? 'USD';
@@ -124,7 +205,7 @@ switch ($endpoint) {
         break;
 
     case 'dex-pair-quotes':
-        // DEX pair quotes endpoint
+        // DEX pair quotes endpoint (CoinMarketCap - legacy)
         $contractAddress = $_GET['contract_address'] ?? '';
         $networkSlug = $_GET['network_slug'] ?? 'Ethereum';
 
@@ -136,6 +217,70 @@ switch ($endpoint) {
 
         $url = "$baseUrl/v4/dex/pairs/quotes/latest?contract_address=$contractAddress&network_slug=$networkSlug";
         break;
+
+    case 'dex-screener-tokens':
+        // DexScreener API - Get pairs for specific tokens
+        $chainId = strtolower($_GET['chain_id'] ?? 'ethereum');
+        $tokenAddresses = $_GET['token_addresses'] ?? '';
+
+        if (empty($tokenAddresses)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Missing token_addresses parameter']);
+            exit;
+        }
+
+        // Make direct request to DexScreener
+        $dexScreenerUrl = "https://api.dexscreener.com/tokens/v1/$chainId/$tokenAddresses";
+        $dexResponse = file_get_contents($dexScreenerUrl);
+
+        if ($dexResponse === false) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to fetch from DexScreener']);
+            exit;
+        }
+
+        $dexData = json_decode($dexResponse, true);
+
+        // Transform DexScreener format to match our current UI expectations
+        $transformed = transformDexScreenerData($dexData);
+
+        http_response_code(200);
+        echo json_encode($transformed);
+        exit;
+
+    case 'dex-screener-pair':
+        // DexScreener API - Get specific pair details
+        $chainId = strtolower($_GET['chain_id'] ?? 'ethereum');
+        $pairAddress = $_GET['pair_address'] ?? '';
+
+        if (empty($pairAddress)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Missing pair_address parameter']);
+            exit;
+        }
+
+        // Use search endpoint to find the pair
+        $dexScreenerUrl = "https://api.dexscreener.com/latest/dex/search?q=$pairAddress";
+        $dexResponse = file_get_contents($dexScreenerUrl);
+
+        if ($dexResponse === false) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to fetch from DexScreener']);
+            exit;
+        }
+
+        $dexData = json_decode($dexResponse, true);
+
+        // Transform and return first matching pair
+        if (isset($dexData['pairs']) && count($dexData['pairs']) > 0) {
+            $transformed = transformDexScreenerPair($dexData['pairs'][0]);
+            http_response_code(200);
+            echo json_encode($transformed);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Pair not found']);
+        }
+        exit;
 
     default:
         http_response_code(400);
