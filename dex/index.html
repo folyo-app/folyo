@@ -17,6 +17,46 @@
     <link rel="stylesheet" href="../css/modal.css">
     <link rel="stylesheet" href="../css/dex.css">
     <link rel="stylesheet" href="../css/responsive.css">
+
+    <!-- Mobile DEX Table Fix -->
+    <style>
+        @media (max-width: 768px) {
+            /* Force DEX table to be visible on mobile */
+            .table-container {
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                height: auto !important;
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            table.crypto-table.dex-table {
+                display: table !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                width: 100% !important;
+                min-width: 600px !important;
+            }
+
+            .dex-table thead {
+                display: table-header-group !important;
+            }
+
+            .dex-table tbody {
+                display: table-row-group !important;
+            }
+
+            .dex-table tr {
+                display: table-row !important;
+            }
+
+            .dex-table th,
+            .dex-table td {
+                display: table-cell !important;
+            }
+        }
+    </style>
 </head>
 <body class="theme-light">
     <!-- Header -->
