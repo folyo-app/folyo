@@ -7,6 +7,8 @@ const DEXUI = {
     currentScrollId: null,
     previousScrollIds: [],
     allPairs: [],
+    filteredPairs: [],
+    searchTerm: '',
 
     /**
      * Render network filter chips
@@ -60,9 +62,62 @@ const DEXUI = {
         this.currentScrollId = null;
         this.previousScrollIds = [];
 
+        // Clear search when changing networks
+        const searchInput = document.getElementById('dex-search-input');
+        if (searchInput) {
+            searchInput.value = '';
+            this.searchTerm = '';
+        }
+
         // Reload data
         if (typeof DEXApp !== 'undefined' && DEXApp.loadPairs) {
             DEXApp.loadPairs();
+        }
+    },
+
+    /**
+     * Setup search event listener
+     */
+    setupSearch() {
+        const searchInput = document.getElementById('dex-search-input');
+        if (!searchInput) return;
+
+        searchInput.addEventListener('input', Utils.debounce((e) => {
+            this.searchTerm = e.target.value.toLowerCase();
+            this.filterAndRenderPairs();
+        }, 300));
+    },
+
+    /**
+     * Filter pairs based on search term
+     */
+    filterAndRenderPairs() {
+        if (!this.searchTerm) {
+            this.filteredPairs = this.allPairs;
+        } else {
+            this.filteredPairs = this.allPairs.filter(pair => {
+                const pairName = (pair.name || '').toLowerCase();
+                const baseSymbol = (pair.base_asset_symbol || '').toLowerCase();
+                const dexName = (pair.dex_id || '').toLowerCase();
+
+                return pairName.includes(this.searchTerm) ||
+                       baseSymbol.includes(this.searchTerm) ||
+                       dexName.includes(this.searchTerm);
+            });
+        }
+
+        this.renderPairsTable(this.filteredPairs);
+        this.updatePairCount();
+    },
+
+    /**
+     * Update pair count display
+     */
+    updatePairCount() {
+        const countElement = document.getElementById('pair-count');
+        if (countElement) {
+            const count = this.filteredPairs.length;
+            countElement.textContent = `${count} pair${count !== 1 ? 's' : ''}`;
         }
     },
 
@@ -134,10 +189,15 @@ const DEXUI = {
 
         if (!pairs || pairs.length === 0) {
             tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-secondary);">No pairs available</td></tr>';
+            this.updatePairCount();
             return;
         }
 
-        this.allPairs = pairs;
+        // Only update allPairs if this is a new data load (not a filter result)
+        if (pairs !== this.filteredPairs) {
+            this.allPairs = pairs;
+            this.filteredPairs = pairs;
+        }
 
         const html = pairs.map((pair, index) => {
             const quote = pair.quote?.[0] || {};
@@ -189,6 +249,7 @@ const DEXUI = {
         }).join('');
 
         tbody.innerHTML = html;
+        this.updatePairCount();
     },
 
     /**

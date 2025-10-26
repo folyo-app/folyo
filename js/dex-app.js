@@ -15,6 +15,9 @@ const DEXApp = {
             // Render network filters
             DEXUI.renderNetworkFilters();
 
+            // Setup search functionality
+            DEXUI.setupSearch();
+
             // Load pairs data
             await this.loadPairs();
 
