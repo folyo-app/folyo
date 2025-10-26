@@ -50,6 +50,8 @@ const DEXUI = {
      * @param {string} network
      */
     selectNetwork(network) {
+        console.log('selectNetwork called with:', network);
+
         // Update active chip
         document.querySelectorAll('.network-chip').forEach(chip => {
             chip.classList.remove('active');
@@ -61,9 +63,14 @@ const DEXUI = {
         this.currentScrollId = null;
         this.previousScrollIds = [];
 
+        console.log('Updated currentNetwork to:', this.currentNetwork);
+
         // Reload data
-        if (window.DEXApp) {
+        if (typeof DEXApp !== 'undefined' && DEXApp.loadPairs) {
+            console.log('Calling DEXApp.loadPairs()');
             DEXApp.loadPairs();
+        } else {
+            console.error('DEXApp or DEXApp.loadPairs not available');
         }
     },
 
