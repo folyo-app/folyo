@@ -148,8 +148,8 @@
             </div>
 
             <!-- DEX Pairs Table -->
-            <div class="table-container">
-                <table class="crypto-table dex-table">
+            <div class="table-container" id="dex-table-container">
+                <table class="crypto-table dex-table" id="dex-main-table">
                     <thead>
                         <tr>
                             <th>#</th>
@@ -350,6 +350,38 @@
             mobileThemeToggle.addEventListener('click', () => {
                 ThemeManager.toggleTheme();
             });
+        }
+
+        // Mobile DEX Table Visibility Fix
+        if (window.innerWidth <= 768) {
+            console.log('Mobile detected - forcing table visibility');
+
+            setTimeout(() => {
+                const container = document.getElementById('dex-table-container');
+                const table = document.getElementById('dex-main-table');
+                const tbody = document.getElementById('dex-table-body');
+
+                if (container) {
+                    container.style.display = 'block';
+                    container.style.visibility = 'visible';
+                    container.style.opacity = '1';
+                    container.style.overflowX = 'auto';
+                    console.log('Container forced visible');
+                }
+
+                if (table) {
+                    table.style.display = 'table';
+                    table.style.visibility = 'visible';
+                    table.style.opacity = '1';
+                    table.style.width = '100%';
+                    table.style.minWidth = '600px';
+                    console.log('Table forced visible');
+                }
+
+                if (tbody) {
+                    console.log('Table body rows:', tbody.children.length);
+                }
+            }, 500);
         }
     </script>
 </body>
