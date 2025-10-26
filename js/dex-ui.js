@@ -39,7 +39,8 @@ const DEXUI = {
         container.querySelectorAll('.network-chip:not(.disabled)').forEach(chip => {
             chip.addEventListener('click', () => {
                 const network = chip.dataset.network;
-                this.selectNetwork(network);
+                console.log('Network chip clicked:', network);
+                DEXUI.selectNetwork(network);
             });
         });
     },
