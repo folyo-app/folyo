@@ -1,0 +1,59 @@
+# ========================================
+# CRITICAL: NEVER COMMIT THESE FILES
+# ========================================
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+
+# Internal Documentation (KEEP PRIVATE)
+PROJECT_CONTEXT.md
+PROJECT_CONTEXT_UPDATES.md
+NOTES.md
+TODO.md
+DEVELOPMENT.md
+AUTHOR.md
+CREDITS_INTERNAL.md
+
+# Personal Information
+*.personal
+*.private
+
+# Database & Credentials
+config/database.php
+config/production.php
+*.sql
+*.dump
+migrations/data/
+backups/
+
+# Redis
+redis.conf
+*.rdb
+*.aof
+
+# Cache & Runtime
+cache/
+!cache/.gitkeep
+logs/
+!logs/.gitkeep
+tmp/
+uploads/
+
+# Development
+node_modules/
+vendor/
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+
+# ========================================
+# End of Critical Section
+# ========================================

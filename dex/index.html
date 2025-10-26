@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Folyo - DEX Pairs & Decentralized Exchange Trading">
+    <title>DEX Pairs | Folyo</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../css/themes.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/modal.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="../css/dex.css">
+</head>
+<body class="theme-light">
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-top">
+                <!-- Mobile Menu Toggle -->
+                <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle mobile menu">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </button>
+
+                <!-- Logo -->
+                <div class="logo">
+                    <a href="../index.html">
+                        <h1>Folyo</h1>
+                    </a>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="nav">
+                    <a href="../index.html" class="nav-link">Cryptocurrencies</a>
+                    <a href="index.html" class="nav-link active">DEX</a>
+                    <a href="../portfolio/index.html" class="nav-link">Portfolio</a>
+                </nav>
+
+                <!-- Header Actions -->
+                <div class="header-actions">
+                    <!-- Theme Toggle -->
+                    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+                        <span class="theme-icon theme-icon-sun">☀️</span>
+                        <span class="theme-icon theme-icon-moon">🌙</span>
+                    </button>
+
+                    <!-- Login Button -->
+                    <button class="btn-login" aria-label="Login">
+                        Login
+                    </button>
+
+                    <!-- Signup Button -->
+                    <button class="btn-signup" aria-label="Sign up">
+                        Sign Up
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Page Title -->
+            <div style="margin-bottom: 20px;">
+                <h2 style="font-size: 28px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">DEX Pairs</h2>
+                <p style="color: var(--text-secondary); font-size: 15px;">Decentralized exchange trading pairs with real-time data</p>
+            </div>
+
+            <!-- Network Filters -->
+            <div class="network-filters" id="network-filters">
+                <!-- Rendered by JavaScript -->
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading" class="loading" style="display: none;">
+                <div class="loading-spinner"></div>
+                <p>Loading DEX pairs...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="error" class="error" style="display: none;">
+                <p class="error-message" id="error-message"></p>
+                <button onclick="location.reload()" class="btn-retry">Retry</button>
+            </div>
+
+            <!-- DEX Pairs Table -->
+            <div class="table-container">
+                <table class="crypto-table dex-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Pair</th>
+                            <th>Network</th>
+                            <th>Price</th>
+                            <th>Liquidity</th>
+                            <th>Volume (24h)</th>
+                            <th>Txns (24h)</th>
+                            <th>24h %</th>
+                            <th>Security</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dex-table-body">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="pagination">
+                <div class="pagination-info">
+                    Showing DEX pairs on <span id="current-network">Ethereum</span> network
+                </div>
+                <div class="pagination-controls">
+                    <button id="prev-page" class="btn-page" onclick="DEXApp.loadPrevPage()" disabled>← Previous</button>
+                    <button id="next-page" class="btn-page" onclick="DEXApp.loadNextPage()">Next →</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Folyo.</p>
+        </div>
+    </footer>
+
+    <!-- Mobile Navigation Drawer -->
+    <div class="mobile-nav-drawer" id="mobile-nav-drawer">
+        <div class="mobile-nav-header">
+            <div class="logo">
+                <h2>Folyo</h2>
+            </div>
+            <button class="mobile-nav-close" id="mobile-nav-close" aria-label="Close menu">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+
+        <nav class="mobile-nav">
+            <a href="../index.html" class="mobile-nav-link">
+                <span class="mobile-nav-icon">📊</span>
+                <span class="mobile-nav-text">Cryptocurrencies</span>
+            </a>
+            <a href="index.html" class="mobile-nav-link active">
+                <span class="mobile-nav-icon">🔄</span>
+                <span class="mobile-nav-text">DEX</span>
+            </a>
+            <a href="../portfolio/index.html" class="mobile-nav-link">
+                <span class="mobile-nav-icon">💼</span>
+                <span class="mobile-nav-text">Portfolio</span>
+            </a>
+        </nav>
+
+        <div class="mobile-nav-divider"></div>
+
+        <div class="mobile-nav-settings">
+            <div class="mobile-nav-item">
+                <label class="mobile-nav-label">Theme</label>
+                <button id="mobile-theme-toggle" class="mobile-theme-toggle">
+                    <span class="mobile-theme-icon">🌙</span>
+                    <span class="mobile-theme-text">Dark Mode</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="mobile-nav-divider"></div>
+
+        <div class="mobile-nav-auth">
+            <button class="mobile-btn-login">Login</button>
+            <button class="mobile-btn-signup">Sign Up</button>
+        </div>
+    </div>
+
+    <!-- Mobile Nav Backdrop -->
+    <div class="mobile-nav-backdrop" id="mobile-nav-backdrop"></div>
+
+    <!-- Scripts -->
+    <script src="../js/config.js"></script>
+    <script src="../js/debug.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/theme.js"></script>
+    <script src="../js/currency.js"></script>
+    <script src="../js/dex-networks.js"></script>
+    <script src="../js/dex-api.js"></script>
+    <script src="../js/dex-ui.js"></script>
+    <script src="../js/dex-app.js"></script>
+
+    <!-- Mobile Menu Script (reuse from main app) -->
+    <script>
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const mobileNavDrawer = document.getElementById('mobile-nav-drawer');
+        const mobileNavBackdrop = document.getElementById('mobile-nav-backdrop');
+        const mobileNavClose = document.getElementById('mobile-nav-close');
+
+        function openMobileMenu() {
+            mobileNavDrawer.classList.add('active');
+            mobileNavBackdrop.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileMenu() {
+            mobileNavDrawer.classList.remove('active');
+            mobileNavBackdrop.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        if (mobileMenuToggle) {
+            mobileMenuToggle.addEventListener('click', openMobileMenu);
+        }
+
+        if (mobileNavClose) {
+            mobileNavClose.addEventListener('click', closeMobileMenu);
+        }
+
+        if (mobileNavBackdrop) {
+            mobileNavBackdrop.addEventListener('click', closeMobileMenu);
+        }
+    </script>
+</body>
+</html>
