@@ -295,6 +295,59 @@
     50% { opacity: 0.5; }
 }
 
+/* Pair Badges (Boosted/Trending) */
+.pair-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    margin-right: 10px;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.pair-badge-boosted {
+    background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.pair-badge-trending {
+    background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(78, 205, 196, 0.3);
+}
+
+/* Pulse animation for BOOSTED badge */
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+    }
+    50% {
+        box-shadow: 0 2px 12px rgba(255, 107, 107, 0.6), 0 0 20px rgba(255, 107, 107, 0.2);
+    }
+}
+
+/* Adjust pair-name-cell for badges */
+.pair-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: nowrap;
+}
+
+.pair-name-cell .pair-icon {
+    flex-shrink: 0;
+}
+
+.pair-name-cell .pair-name {
+    flex: 1;
+    min-width: 0;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .network-cards-container {

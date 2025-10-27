@@ -113,7 +113,7 @@ $apiKey = loadEnv();
 
 // Check if endpoint requires API key (DexScreener endpoints don't need it)
 $endpoint = $_GET['endpoint'] ?? '';
-$requiresApiKey = !in_array($endpoint, ['fear-greed', 'dex-screener-tokens', 'dex-screener-pair', 'dex-screener-search']);
+$requiresApiKey = !in_array($endpoint, ['fear-greed', 'dex-screener-tokens', 'dex-screener-pair', 'dex-screener-search', 'token-boosts-latest', 'token-boosts-top']);
 
 if ($requiresApiKey && !$apiKey) {
     http_response_code(500);
@@ -324,6 +324,40 @@ switch ($endpoint) {
 
         http_response_code(200);
         echo json_encode($transformed);
+        exit;
+
+    case 'token-boosts-latest':
+        // DexScreener API - Latest boosted tokens
+        $dexScreenerUrl = "https://api.dexscreener.com/token-boosts/latest/v1";
+        $dexResponse = file_get_contents($dexScreenerUrl);
+
+        if ($dexResponse === false) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to fetch token boosts from DexScreener']);
+            exit;
+        }
+
+        $dexData = json_decode($dexResponse, true);
+
+        http_response_code(200);
+        echo json_encode($dexData);
+        exit;
+
+    case 'token-boosts-top':
+        // DexScreener API - Top boosted tokens
+        $dexScreenerUrl = "https://api.dexscreener.com/token-boosts/top/v1";
+        $dexResponse = file_get_contents($dexScreenerUrl);
+
+        if ($dexResponse === false) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to fetch top token boosts from DexScreener']);
+            exit;
+        }
+
+        $dexData = json_decode($dexResponse, true);
+
+        http_response_code(200);
+        echo json_encode($dexData);
         exit;
 
     default:

@@ -3,7 +3,7 @@
  */
 
 const DEXUI = {
-    currentNetwork: 'ethereum',
+    currentNetwork: 'all',
     currentScrollId: null,
     previousScrollIds: [],
     allPairs: [],
@@ -58,8 +58,8 @@ const DEXUI = {
         });
         document.querySelector(`[data-network="${network}"]`).classList.add('active');
 
-        // Update current network
-        this.currentNetwork = network === 'all' ? 'ethereum' : network;
+        // Update current network (keep 'all' as is)
+        this.currentNetwork = network;
         this.currentScrollId = null;
         this.previousScrollIds = [];
 
@@ -218,9 +218,18 @@ const DEXUI = {
         if (!tbody) return;
 
         if (!pairs || pairs.length === 0) {
-            const message = this.searchTerm
-                ? `No results found for "${this.searchTerm}"`
-                : 'No pairs available';
+            let message;
+            if (this.searchTerm) {
+                message = `No results found for "${this.searchTerm}"`;
+            } else {
+                const networkName = DEXNetworks.getName(this.currentNetwork);
+                message = `
+                    <div style="font-size:18px;margin-bottom:12px;">🔍 No boosted tokens on ${networkName}</div>
+                    <div style="color:var(--text-secondary);font-size:14px;">
+                        Try selecting <strong>Solana</strong> or <strong>BSC</strong>, or use the search above to find specific pairs
+                    </div>
+                `;
+            }
             tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-secondary);">${message}</td></tr>`;
             this.updatePairCount();
             return;
@@ -256,11 +265,19 @@ const DEXUI = {
             // Use only the base asset symbol (predominant token) instead of full pair name
             const tokenSymbol = pair.base_asset_symbol || 'N/A';
 
+            // Badge for boosted/trending tokens
+            const badge = pair.badge === 'BOOSTED'
+                ? '<span class="pair-badge pair-badge-boosted">🔥 BOOSTED</span>'
+                : pair.badge === 'TRENDING'
+                ? '<span class="pair-badge pair-badge-trending">📈 TRENDING</span>'
+                : '';
+
             return `
                 <tr onclick="window.location.href='pair/index.html?contract=${encodeURIComponent(pair.contract_address)}&network=${encodeURIComponent(pair.network_slug)}';" style="cursor: pointer;">
                     <td>${index + 1}</td>
                     <td>
                         <div class="pair-name-cell">
+                            ${badge}
                             ${tokenIcon ? `<img src="${tokenIcon}" alt="${tokenSymbol}" class="pair-icon" onerror="this.style.display='none'">` : ''}
                             <span class="pair-name">${this.escapeHtml(tokenSymbol)}</span>
                         </div>

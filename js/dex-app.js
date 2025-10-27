@@ -38,8 +38,8 @@ const DEXApp = {
 
             const network = DEXUI.currentNetwork;
 
-            // Fetch top 25 pairs by volume for this network
-            const data = await DEXAPI.getDexPairs(network, 25);
+            // Fetch top 30 pairs for this network (or all networks)
+            const data = await DEXAPI.getDexPairs(network, 30);
 
             if (data.data && data.data.length > 0) {
                 // Render table
@@ -48,7 +48,7 @@ const DEXApp = {
                 // Update network name in info text
                 const currentNetworkSpan = document.getElementById('current-network');
                 if (currentNetworkSpan) {
-                    const networkName = DEXNetworks.getName(network);
+                    const networkName = network === 'all' ? 'all networks' : DEXNetworks.getName(network);
                     currentNetworkSpan.textContent = networkName;
                 }
             } else {
